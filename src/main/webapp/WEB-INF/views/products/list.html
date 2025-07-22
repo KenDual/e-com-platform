@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .product-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .product-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        .price-tag {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .spec-badge {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            padding: 4px 10px;
+            margin: 2px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .see-more-btn {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .see-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+        }
+        .loading-spinner {
+            display: none;
+            margin: 0 10px;
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+<!-- Header Section -->
+<div class="header-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-3">
+            <i class="fas fa-laptop me-3"></i>Our Products
+        </h1>
+        <p class="lead">Discover the best laptops for your needs</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Stats Section -->
+    <div class="row mb-5">
+        <div class="col-md-4 text-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-boxes text-primary display-4 mb-3"></i>
+                    <h4 id="totalProducts" th:text="${totalProducts ?: '0'}">0</h4>
+                    <p class="text-muted">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-eye text-success display-4 mb-3"></i>
+                    <h4 id="loadedProducts">10</h4>
+                    <p class="text-muted">Loaded Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-building text-info display-4 mb-3"></i>
+                    <h4 id="totalBrands" th:text="${totalBrands ?: '0'}">0</h4>
+                    <p class="text-muted">Brands Available</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="products-container" class="row g-4">
+        <!-- Initial products loaded from server -->
+        <div th:each="product : ${products}" class="col-lg-4 col-md-6 product-item fade-in">
+            <div class="card product-card shadow-sm">
+                <div class="product-image">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-primary" th:text="${product.company}">Brand</h5>
+                    <h6 class="card-subtitle mb-2 text-dark fw-bold" th:text="${product.productName}">Product Name</h6>
+                    <p class="text-muted small mb-3" th:text="${product.typeName}">Type</p>
+
+                    <!-- Specs -->
+                    <div class="mb-3">
+                        <span class="spec-badge" th:text="${product.screenSize_Inch} + '&quot;'">15"</span>
+                        <span class="spec-badge" th:text="${product.ram_GB} + 'GB RAM'">8GB RAM</span>
+                        <span class="spec-badge" th:text="${product.CPU_Company}">Intel</span>
+                        <span class="spec-badge" th:text="${product.operatingSystem}">Windows</span>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="small text-muted mb-3">
+                        <div><strong>CPU:</strong> <span th:text="${product.CPU_Type}">CPU Type</span></div>
+                        <div><strong>Storage:</strong> <span th:text="${product.storage}">Storage</span></div>
+                        <div><strong>Weight:</strong> <span th:text="${product.weight_Kg} + 'kg'">2.5kg</span></div>
+                    </div>
+
+                    <!-- Price and Button -->
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="price-tag" th:text="${#numbers.formatDecimal(product.price_VND, 0, 'COMMA', 0, 'POINT')} + ' ₫'">25,000,000 ₫</span>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- See More Button -->
+    <div class="text-center mt-5 mb-5">
+        <button id="seeMoreBtn" class="btn btn-primary see-more-btn">
+            <i class="fas fa-plus-circle me-2"></i>See More Products
+            <div class="spinner-border spinner-border-sm loading-spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentPage = 1;
+    let loading = false;
+    let hasMore = true;
+
+    document.getElementById('seeMoreBtn').addEventListener('click', function() {
+        if (loading || !hasMore) return;
+
+        loadMoreProducts();
+    });
+
+    function loadMoreProducts() {
+        loading = true;
+        const btn = document.getElementById('seeMoreBtn');
+        const spinner = btn.querySelector('.loading-spinner');
+
+        // Show loading state
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...<div class="spinner-border spinner-border-sm loading-spinner" role="status" style="display: inline-block; margin: 0 10px;"><span class="visually-hidden">Loading...</span></div>';
+
+        // Make AJAX request
+        fetch(`/products/api/load-more?page=${currentPage + 1}&size=10`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.products && data.products.length > 0) {
+                    appendProducts(data.products);
+                    currentPage++;
+                    updateLoadedCount();
+
+                    // Check if there are more products
+                    if (data.products.length < 10) {
+                        hasMore = false;
+                        btn.innerHTML = '<i class="fas fa-check me-2"></i>All Products Loaded';
+                        btn.disabled = true;
+                        return;
+                    }
+                } else {
+                    hasMore = false;
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>All Products Loaded';
+                    btn.disabled = true;
+                    return;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading products:', error);
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error Loading';
+            })
+            .finally(() => {
+                loading = false;
+                if (hasMore) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-plus-circle me-2"></i>See More Products';
+                }
+            });
+    }
+
+    function appendProducts(products) {
+        const container = document.getElementById('products-container');
+
+        products.forEach(product => {
+            const productHTML = `
+                    <div class="col-lg-4 col-md-6 product-item fade-in">
+                        <div class="card product-card shadow-sm">
+                            <div class="product-image">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-primary">${product.company}</h5>
+                                <h6 class="card-subtitle mb-2 text-dark fw-bold">${product.productName}</h6>
+                                <p class="text-muted small mb-3">${product.typeName || ''}</p>
+
+                                <div class="mb-3">
+                                    <span class="spec-badge">${product.screenSize_Inch}"</span>
+                                    <span class="spec-badge">${product.ram_GB}GB RAM</span>
+                                    <span class="spec-badge">${product.cpu_Company}</span>
+                                    <span class="spec-badge">${product.operatingSystem}</span>
+                                </div>
+
+                                <div class="small text-muted mb-3">
+                                    <div><strong>CPU:</strong> ${product.cpu_Type}</div>
+                                    <div><strong>Storage:</strong> ${product.storage}</div>
+                                    <div><strong>Weight:</strong> ${product.weight_Kg}kg</div>
+                                </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <span class="price-tag">${formatPrice(product.price_VND)} ₫</span>
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            container.insertAdjacentHTML('beforeend', productHTML);
+        });
+    }
+
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price);
+    }
+
+    function updateLoadedCount() {
+        const loadedCount = document.querySelectorAll('.product-item').length;
+        document.getElementById('loadedProducts').textContent = loadedCount;
+    }
+
+    // Initialize loaded count
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLoadedCount();
+    });
+</script>
+</body>
+</html>
