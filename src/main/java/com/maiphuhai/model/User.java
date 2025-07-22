@@ -3,60 +3,60 @@ package com.maiphuhai.model;
 import java.time.LocalDateTime;
 
 public class User {
-    private int userId;
-    private String username;
-    private String passwordHash;
-    private int roleId;
-    private LocalDateTime createdAt;
+    private int UserId;
+    private String Username;
+    private String PasswordHash;
+    private int RoleId;
+    private LocalDateTime CreatedAt;
 
     public User() {
     }
 
     public User(int userId, String username, String passwordHash, int roleId, LocalDateTime createdAt) {
-        this.userId = userId;
-        this.username = username;
-        this.passwordHash = passwordHash;
-        this.roleId = roleId;
-        this.createdAt = createdAt;
+        UserId = userId;
+        Username = username;
+        PasswordHash = passwordHash;
+        RoleId = roleId;
+        CreatedAt = createdAt;
     }
 
     public int getUserId() {
-        return userId;
+        return UserId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        UserId = userId;
     }
 
     public String getUsername() {
-        return username;
+        return Username;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        Username = username;
     }
 
     public String getPasswordHash() {
-        return passwordHash;
+        return PasswordHash;
     }
 
     public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+        PasswordHash = passwordHash;
     }
 
     public int getRoleId() {
-        return roleId;
+        return RoleId;
     }
 
     public void setRoleId(int roleId) {
-        this.roleId = roleId;
+        RoleId = roleId;
     }
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return CreatedAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        CreatedAt = createdAt;
     }
 }
