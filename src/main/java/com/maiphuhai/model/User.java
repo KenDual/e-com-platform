@@ -1,5 +1,6 @@
 package com.maiphuhai.model;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 public class User {
@@ -7,12 +8,12 @@ public class User {
     private String Username;
     private String PasswordHash;
     private int RoleId;
-    private LocalDateTime CreatedAt;
+    private Timestamp CreatedAt;
 
     public User() {
     }
 
-    public User(int userId, String username, String passwordHash, int roleId, LocalDateTime createdAt) {
+    public User(int userId, String username, String passwordHash, int roleId, Timestamp createdAt) {
         UserId = userId;
         Username = username;
         PasswordHash = passwordHash;
@@ -52,11 +53,11 @@ public class User {
         RoleId = roleId;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return CreatedAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         CreatedAt = createdAt;
     }
 }

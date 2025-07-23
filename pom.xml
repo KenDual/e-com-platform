@@ -31,6 +31,20 @@
       <version>${spring.version}</version>
     </dependency>
 
+    <!-- Gửi mail -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+      <version>${spring.version}</version> <!-- = 6.1.5 -->
+    </dependency>
+
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+
+
     <!-- Thymeleaf cho Spring 6 -->
     <dependency>
       <groupId>org.thymeleaf</groupId>
