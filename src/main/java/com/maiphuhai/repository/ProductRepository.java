@@ -68,4 +68,16 @@ public class ProductRepository {
         String sql = "SELECT * FROM Products WHERE Price_VND BETWEEN ? AND ? AND IsActive = 1";
         return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER, minPrice, maxPrice);
     }
+
+    //Find product from price ascending
+    public List<Product> findAllSortedByAcs() {
+        String sql = "SELECT * FROM Products WHERE IsActive = 1 ORDER BY Price_VND ASC";
+        return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
+    }
+
+    //Find product from price descending
+    public List<Product> findAllSortedByDesc() {
+        String sql = "SELECT * FROM Products WHERE IsActive = 1 ORDER BY ProductName DESC";
+        return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
+    }
 }

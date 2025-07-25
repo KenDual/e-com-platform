@@ -18,5 +18,14 @@ public class ProductService {
         return productRepository.findAll();
     }
 
+    //Find by Acs price
+    public List<Product> findByAscPrice() {
+        return productRepository.findAllSortedByAcs();
+    }
+
+    public List<Product> findByDescPrice() {
+        return productRepository.findAllSortedByDesc();
+    }
+
 
 }

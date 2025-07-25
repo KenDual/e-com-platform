@@ -14,9 +14,11 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    //List all products
     @GetMapping
     public String listProducts(Model model) {
         model.addAttribute("products", productService.findAll());
-        return "products/list"; // Assuming you have a Thymeleaf template named productList.html
+        return "products/list";
     }
+
 }
