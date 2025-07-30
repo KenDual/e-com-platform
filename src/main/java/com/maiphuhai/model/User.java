@@ -3,39 +3,45 @@ package com.maiphuhai.model;
 import java.sql.Timestamp;
 
 public class User {
-    private int UserId;
-    private String Username;
-    private String email;
-    private String PasswordHash;
-    private int RoleId;
-    private Timestamp CreatedAt;
+    private int     userId;
+    private String  username;
+    private String  email;
+    private String  passwordHash;
+    private int     roleId;
+    private boolean isActive;
+    private boolean isDeleted;
+    private Timestamp deletedAt;
+    private Timestamp createdAt;
 
     public User() {
     }
 
-    public User(int userId, String username, String email, String passwordHash, int roleId, Timestamp createdAt) {
-        UserId = userId;
-        Username = username;
+    public User(int userId, String username, String email, String passwordHash, int roleId, boolean isActive, boolean isDeleted, Timestamp deletedAt, Timestamp createdAt) {
+        this.userId = userId;
+        this.username = username;
         this.email = email;
-        PasswordHash = passwordHash;
-        RoleId = roleId;
-        CreatedAt = createdAt;
+        this.passwordHash = passwordHash;
+        this.roleId = roleId;
+        this.isActive = isActive;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
+        this.createdAt = createdAt;
     }
 
     public int getUserId() {
-        return UserId;
+        return userId;
     }
 
     public void setUserId(int userId) {
-        UserId = userId;
+        this.userId = userId;
     }
 
     public String getUsername() {
-        return Username;
+        return username;
     }
 
     public void setUsername(String username) {
-        Username = username;
+        this.username = username;
     }
 
     public String getEmail() {
@@ -47,26 +53,50 @@ public class User {
     }
 
     public String getPasswordHash() {
-        return PasswordHash;
+        return passwordHash;
     }
 
     public void setPasswordHash(String passwordHash) {
-        PasswordHash = passwordHash;
+        this.passwordHash = passwordHash;
     }
 
     public int getRoleId() {
-        return RoleId;
+        return roleId;
     }
 
     public void setRoleId(int roleId) {
-        RoleId = roleId;
+        this.roleId = roleId;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Timestamp getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Timestamp deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Timestamp getCreatedAt() {
-        return CreatedAt;
+        return createdAt;
     }
 
     public void setCreatedAt(Timestamp createdAt) {
-        CreatedAt = createdAt;
+        this.createdAt = createdAt;
     }
 }
