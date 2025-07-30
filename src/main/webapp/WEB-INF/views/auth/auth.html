@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication - E-commerce</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #666;
+            margin: 0;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .auth-links a:hover {
+            color: #764ba2;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .otp-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .otp-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        .password-strength {
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Login Page -->
+        <div class="page active" id="loginPage">
+            <div class="auth-header">
+                <div class="brand-logo">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}">Invalid credentials</span>
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="loginEmail" name="email"
+                           placeholder="name@example.com" required>
+                    <label for="loginEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="loginPassword" name="password"
+                           placeholder="Password" required>
+                    <label for="loginPassword"><i class="fas fa-lock me-2"></i>Password</label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                    <label class="form-check-label" for="rememberMe">
+                        Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </button>
+            </form>
+
+            <div class="auth-links">
+                <div class="mb-2">
+                    <a href="#" onclick="showPage('forgotPage')">Forgot your password?</a>
+                </div>
+                <div>
+                    Don't have an account?
+                    <a href="#" onclick="showPage('signupPage')">Sign up</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sign Up Page -->
+        <div class="page" id="signupPage">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showPage('loginPage')">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <div class="brand-logo">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Create Account</h2>
+                <p>Join our e-commerce platform</p>
+            </div>
+
+            <div th:if="${signupError}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${signupError}">Registration failed</span>
+            </div>
+
+            <div th:if="${signupSuccess}" class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${signupSuccess}">Account created successfully</span>
+            </div>
+
+            <form th:action="@{/signup}" method="post" th:object="${userRegistration}">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="signupUsername"
+                           th:field="*{username}" placeholder="Username" required>
+                    <label for="signupUsername"><i class="fas fa-user me-2"></i>Username</label>
+                    <div th:if="${#fields.hasErrors('username')}" class="text-danger small mt-1">
+                        <span th:errors="*{username}"></span>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="signupEmail"
+                           th:field="*{email}" placeholder="name@example.com" required>
+                    <label for="signupEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                    <div th:if="${#fields.hasErrors('email')}" class="text-danger small mt-1">
+                        <span th:errors="*{email}"></span>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="signupPassword"
+                           th:field="*{password}" placeholder="Password" required
+                           onkeyup="checkPasswordStrength(this.value)">
+                    <label for="signupPassword"><i class="fas fa-lock me-2"></i>Password</label>
+                    <div class="password-strength">
+                        <div class="strength-text" id="strengthText">Password strength: Weak</div>
+                        <div class="strength-bar bg-danger" id="strengthBar"></div>
+                    </div>
+                    <div th:if="${#fields.hasErrors('password')}" class="text-danger small mt-1">
+                        <span th:errors="*{password}"></span>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="confirmPassword"
+                           name="confirmPassword" placeholder="Confirm Password" required>
+                    <label for="confirmPassword"><i class="fas fa-lock me-2"></i>Confirm Password</label>
+                    <div id="passwordMatch" class="small mt-1"></div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                    <label class="form-check-label" for="agreeTerms">
+                        I agree to the <a href="#" class="text-decoration-none">Terms of Service</a>
+                        and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="auth-links">
+                Already have an account?
+                <a href="#" onclick="showPage('loginPage')">Sign in</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Page -->
+        <div class="page" id="forgotPage">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showPage('loginPage')">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <div class="brand-logo">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h2>Reset Password</h2>
+                <p>Enter your email to receive OTP</p>
+            </div>
+
+            <div th:if="${otpError}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${otpError}">Invalid OTP or email</span>
+            </div>
+
+            <form th:action="@{/forgot-password}" method="post">
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="forgotEmail" name="email"
+                           placeholder="name@example.com" required>
+                    <label for="forgotEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-2"></i>Send OTP
+                </button>
+            </form>
+
+            <div class="auth-links">
+                Remember your password?
+                <a href="#" onclick="showPage('loginPage')">Sign in</a>
+            </div>
+        </div>
+
+        <!-- OTP Verification Page -->
+        <div class="page" id="otpPage">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showPage('forgotPage')">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <div class="brand-logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Verify OTP</h2>
+                <p>Enter the 6-digit code sent to your email</p>
+            </div>
+
+            <form th:action="@{/verify-otp}" method="post">
+                <input type="hidden" name="email" th:value="${email}">
+
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" name="otp1" required
+                           onkeyup="moveToNext(this, 'otp2')" onkeydown="moveToPrev(this, null)">
+                    <input type="text" class="otp-input" maxlength="1" name="otp2" required
+                           onkeyup="moveToNext(this, 'otp3')" onkeydown="moveToPrev(this, 'otp1')">
+                    <input type="text" class="otp-input" maxlength="1" name="otp3" required
+                           onkeyup="moveToNext(this, 'otp4')" onkeydown="moveToPrev(this, 'otp2')">
+                    <input type="text" class="otp-input" maxlength="1" name="otp4" required
+                           onkeyup="moveToNext(this, 'otp5')" onkeydown="moveToPrev(this, 'otp3')">
+                    <input type="text" class="otp-input" maxlength="1" name="otp5" required
+                           onkeyup="moveToNext(this, 'otp6')" onkeydown="moveToPrev(this, 'otp4')">
+                    <input type="text" class="otp-input" maxlength="1" name="otp6" required
+                           onkeyup="moveToNext(this, null)" onkeydown="moveToPrev(this, 'otp5')">
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Verify OTP
+                </button>
+            </form>
+
+            <div class="auth-links">
+                <div class="mb-2">
+                    Didn't receive the code?
+                    <a href="#" onclick="resendOTP()">Resend OTP</a>
+                </div>
+                <div id="otpTimer" class="text-muted small">Resend available in <span id="countdown">60</span>s</div>
+            </div>
+        </div>
+
+        <!-- Reset Password Page -->
+        <div class="page" id="resetPage">
+            <div class="auth-header">
+                <div class="brand-logo">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2>New Password</h2>
+                <p>Create your new password</p>
+            </div>
+
+            <form th:action="@{/reset-password}" method="post">
+                <input type="hidden" name="token" th:value="${resetToken}">
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="newPassword" name="newPassword"
+                           placeholder="New Password" required
+                           onkeyup="checkPasswordStrength(this.value)">
+                    <label for="newPassword"><i class="fas fa-lock me-2"></i>New Password</label>
+                    <div class="password-strength">
+                        <div class="strength-text" id="resetStrengthText">Password strength: Weak</div>
+                        <div class="strength-bar bg-danger" id="resetStrengthBar"></div>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="confirmNewPassword"
+                           name="confirmNewPassword" placeholder="Confirm New Password" required>
+                    <label for="confirmNewPassword"><i class="fas fa-lock me-2"></i>Confirm New Password</label>
+                    <div id="resetPasswordMatch" class="small mt-1"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Page navigation
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+
+    // OTP input navigation
+    function moveToNext(current, nextFieldId) {
+        if (current.value.length === current.maxLength) {
+            if (nextFieldId) {
+                document.getElementById(nextFieldId).focus();
+            }
+        }
+    }
+
+    function moveToPrev(current, prevFieldId) {
+        if (event.key === 'Backspace' && current.value.length === 0) {
+            if (prevFieldId) {
+                document.getElementById(prevFieldId).focus();
+            }
+        }
+    }
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        const strengthText = document.getElementById('strengthText') || document.getElementById('resetStrengthText');
+        const strengthBar = document.getElementById('strengthBar') || document.getElementById('resetStrengthBar');
+
+        let strength = 0;
+        let text = 'Very Weak';
+        let color = 'bg-danger';
+
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+
+        switch (strength) {
+            case 0:
+            case 1:
+                text = 'Very Weak';
+                color = 'bg-danger';
+                break;
+            case 2:
+                text = 'Weak';
+                color = 'bg-warning';
+                break;
+            case 3:
+                text = 'Medium';
+                color = 'bg-info';
+                break;
+            case 4:
+                text = 'Strong';
+                color = 'bg-primary';
+                break;
+            case 5:
+                text = 'Very Strong';
+                color = 'bg-success';
+                break;
+        }
+
+        if (strengthText) strengthText.textContent = `Password strength: ${text}`;
+        if (strengthBar) {
+            strengthBar.className = `strength-bar ${color}`;
+            strengthBar.style.width = `${(strength / 5) * 100}%`;
+        }
+    }
+
+    // Password confirmation checker
+    document.getElementById('confirmPassword')?.addEventListener('keyup', function () {
+        const password = document.getElementById('signupPassword').value;
+        const confirm = this.value;
+        const matchDiv = document.getElementById('passwordMatch');
+
+        if (confirm.length > 0) {
+            if (password === confirm) {
+                matchDiv.innerHTML = '<i class="fas fa-check text-success"></i> Passwords match';
+                matchDiv.className = 'small mt-1 text-success';
+            } else {
+                matchDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Passwords do not match';
+                matchDiv.className = 'small mt-1 text-danger';
+            }
+        } else {
+            matchDiv.innerHTML = '';
+        }
+    });
+
+    document.getElementById('confirmNewPassword')?.addEventListener('keyup', function () {
+        const password = document.getElementById('newPassword').value;
+        const confirm = this.value;
+        const matchDiv = document.getElementById('resetPasswordMatch');
+
+        if (confirm.length > 0) {
+            if (password === confirm) {
+                matchDiv.innerHTML = '<i class="fas fa-check text-success"></i> Passwords match';
+                matchDiv.className = 'small mt-1 text-success';
+            } else {
+                matchDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Passwords do not match';
+                matchDiv.className = 'small mt-1 text-danger';
+            }
+        } else {
+            matchDiv.innerHTML = '';
+        }
+    });
+
+    // OTP Timer
+    let otpCountdown = 60;
+
+    function startOTPTimer() {
+        const timer = setInterval(() => {
+            document.getElementById('countdown').textContent = otpCountdown;
+            otpCountdown--;
+
+            if (otpCountdown < 0) {
+                clearInterval(timer);
+                document.getElementById('otpTimer').style.display = 'none';
+                // Enable resend button logic here
+            }
+        }, 1000);
+    }
+
+    function resendOTP() {
+        // Add resend OTP logic here
+        otpCountdown = 60;
+        startOTPTimer();
+        document.getElementById('otpTimer').style.display = 'block';
+    }
+
+    // Auto-focus first OTP input when OTP page is shown
+    function showOTPPage() {
+        showPage('otpPage');
+        setTimeout(() => {
+            document.querySelector('.otp-input').focus();
+            startOTPTimer();
+        }, 100);
+    }
+
+    // Handle form submissions with page transitions
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check URL parameters to show appropriate page
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+
+        if (page === 'otp') {
+            showOTPPage();
+        } else if (page === 'reset') {
+            showPage('resetPage');
+        } else if (page === 'signup') {
+            showPage('signupPage');
+        }
+    });
+</script>
+</body>
+</html>

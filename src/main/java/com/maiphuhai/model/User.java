@@ -1,11 +1,11 @@
 package com.maiphuhai.model;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 public class User {
     private int UserId;
     private String Username;
+    private String email;
     private String PasswordHash;
     private int RoleId;
     private Timestamp CreatedAt;
@@ -13,9 +13,10 @@ public class User {
     public User() {
     }
 
-    public User(int userId, String username, String passwordHash, int roleId, Timestamp createdAt) {
+    public User(int userId, String username, String email, String passwordHash, int roleId, Timestamp createdAt) {
         UserId = userId;
         Username = username;
+        this.email = email;
         PasswordHash = passwordHash;
         RoleId = roleId;
         CreatedAt = createdAt;
@@ -35,6 +36,14 @@ public class User {
 
     public void setUsername(String username) {
         Username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPasswordHash() {

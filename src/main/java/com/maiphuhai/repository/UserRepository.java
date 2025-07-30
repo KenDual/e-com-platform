@@ -28,6 +28,7 @@ public class UserRepository {
 
             user.setUserId(rs.getInt("UserId"));
             user.setUsername(rs.getString("Username"));
+            user.setEmail(rs.getString("Email"));
             user.setPasswordHash(rs.getString("PasswordHash"));
             user.setRoleId(rs.getInt("RoleId"));
             user.setCreatedAt(rs.getTimestamp("CreatedAt"));
@@ -62,15 +63,16 @@ public class UserRepository {
 
     //Create new user
     public User createUser(User user) {
-        String sql = "INSERT INTO Users (Username, PasswordHash, RoleId) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Users (Username, Email, PasswordHash, RoleId) VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getUsername());
-            ps.setString(2, user.getPasswordHash());
-            ps.setInt(3, user.getRoleId());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPasswordHash());
+            ps.setInt(4, user.getRoleId());
             return ps;
         }, keyHolder);
 
@@ -80,8 +82,8 @@ public class UserRepository {
 
     //Update user
     public boolean updateUser(User user) {
-        String sql = "UPDATE Users SET Username = ?, PasswordHash = ?, RoleId = ? WHERE UserId = ?";
-        int rowsAffected = jdbcTemplate.update(sql, user.getUsername(), user.getPasswordHash(), user.getRoleId(), user.getUserId());
+        String sql = "UPDATE Users SET Username = ?, Email = ?, PasswordHash = ?, RoleId = ? WHERE UserId = ?";
+        int rowsAffected = jdbcTemplate.update(sql, user.getUsername(), user.getEmail(), user.getPasswordHash(), user.getRoleId(), user.getUserId());
         return rowsAffected > 0;
     }
 

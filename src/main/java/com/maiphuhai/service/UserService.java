@@ -3,6 +3,7 @@ package com.maiphuhai.service;
 import com.maiphuhai.model.User;
 import com.maiphuhai.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -12,6 +13,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
     // ──────────────── READ ────────────────
     public List<User> findAll()               { return userRepository.findAll(); }
