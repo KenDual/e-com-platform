@@ -40,7 +40,10 @@ public class UserController {
         if (binding.hasErrors()) {
             return "users/user-form";
         }
-        userService.save(user);
+        userService.register(
+                user.getUsername(),
+                user.getEmail(),
+                user.getPasswordHash());
         ra.addFlashAttribute("success", "Thêm user thành công!");
         return "redirect:/users";
     }
@@ -49,7 +52,7 @@ public class UserController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable int id, Model model) {
         User user = userService.findById(id);
-        if (user == null) return "redirect:/users";   // hoặc 404 page
+        if (user == null) return "redirect:/users";
         model.addAttribute("user", user);
         model.addAttribute("mode", "EDIT");
         return "users/user-form";
@@ -65,7 +68,7 @@ public class UserController {
             return "users/user-form";
         }
         user.setUserId(id);
-        userService.save(user);
+        userService.update(user);
         ra.addFlashAttribute("success", "Cập nhật user thành công!");
         return "redirect:/users";
     }
@@ -74,7 +77,7 @@ public class UserController {
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable int id,
                              RedirectAttributes ra) {
-        userService.deleteById(id);
+        userService.softDelete(id);
         ra.addFlashAttribute("success", "Đã xóa user!");
         return "redirect:/users";
     }

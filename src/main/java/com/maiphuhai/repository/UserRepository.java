@@ -155,9 +155,10 @@ public class UserRepository {
 
     /* ---------- FIND BY USERNAME *HOẶC* EMAIL ---------- */
     public User findByUsernameOrEmail(String v){
-        return jdbc.queryForObject("""
+        List<User> list = jdbc.query("""
         SELECT * FROM Users
         WHERE (Username = ? OR Email = ?) AND IsDeleted = 0
         """, M, v, v);
+        return list.isEmpty() ? null : list.get(0);
     }
 }
