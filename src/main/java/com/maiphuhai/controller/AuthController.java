@@ -33,7 +33,7 @@ public class AuthController {
             model.addAttribute("userRegistration", new UserRegistration());
 
         model.addAttribute("page", page);
-        return "auth/login";
+        return "auth/auth";
     }
 
     /* ----------- XỬ LÝ LOGIN ----------- */

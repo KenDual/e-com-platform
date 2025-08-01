@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -55,9 +54,6 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                 )
-
-                /* ---------- “Remember-me” ---------- */
-                .rememberMe(withDefaults())  // cookie 14 ngày
 
                 /* ---------- CSRF ---------- */
                 .csrf(csrf -> csrf
