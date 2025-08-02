@@ -36,23 +36,6 @@ public class AuthController {
         return "auth/auth";
     }
 
-    /* ----------- XỬ LÝ LOGIN ----------- */
-    @PostMapping("/login")
-    public String doLogin(@RequestParam String email,
-                          @RequestParam String password,
-                          HttpSession session,
-                          RedirectAttributes ra) {
-
-        User user = userService.authenticate(email, password);
-        if (user == null) {
-            ra.addFlashAttribute("error", "Sai thông tin đăng nhập!");
-            ra.addAttribute("page", "login");
-            return "redirect:/login";
-        }
-        session.setAttribute("currentUser", user);
-        return (user.getRoleId()==1) ? "redirect:/admin" : "redirect:/";
-    }
-
     /* ----------- Xử lý sign-up ----------- */
     @PostMapping("/signup")
     public String signup(@Validated @ModelAttribute("userRegistration") UserRegistration reg,

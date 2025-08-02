@@ -1,8 +1,16 @@
 package com.maiphuhai.model;
 
+import jakarta.persistence.*;
+
 import java.sql.Timestamp;
 
+//@Entity
+//@Table(name = "users")
 public class User {
+
+//    @Id
+//    @GeneratedValue
+
     private int     userId;
     private String  username;
     private String  email;
