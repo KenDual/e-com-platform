@@ -3,6 +3,7 @@ package com.maiphuhai.controller;
 import com.maiphuhai.DTO.PasswordResetToken;
 import com.maiphuhai.DTO.UserRegistration;
 import com.maiphuhai.model.User;
+import com.maiphuhai.service.EmailService;
 import com.maiphuhai.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     /* ----------- HIỂN THỊ FORM ----------- */
     @GetMapping("/login")
@@ -66,20 +70,24 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String forgot(@RequestParam("email") String email,
                          RedirectAttributes ra) {
-        User u;
-        try {
-            u = userService.findByUsernameOrEmail(email);
-        } catch (Exception e) {
-            u = null;
-        }
+
+        User u = userService.findByUsernameOrEmail(email);
         if (u == null) {
             ra.addFlashAttribute("otpError", "Email không tồn tại!");
             ra.addAttribute("page", "forgot");
             return "redirect:/login";
         }
+
+        // ----- sinh mã OTP -----
         String otp = String.format("%06d", new SecureRandom().nextInt(1_000_000));
         otpStore.put(email, otp);
+
+        // ----- gửi mail -----
+        emailService.sendOtp(email, otp);
+
         ra.addFlashAttribute("email", email);
+        ra.addFlashAttribute("info",
+                "Mã OTP đã được gửi tới " + email + ". Vui lòng kiểm tra hộp thư!");
         return "redirect:/login?page=otp";
     }
 

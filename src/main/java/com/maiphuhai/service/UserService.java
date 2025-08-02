@@ -78,11 +78,11 @@ public class UserService {
         repo.restore(id);
     }
 
-    public User findByUsernameOrEmail(String v){
+    public User findByUsernameOrEmail(String v) {
         return repo.findByUsernameOrEmail(v);
     }
 
-    public User findByEmail(String e){
+    public User findByEmail(String e) {
         return repo.findByEmail(e);
     }
 
@@ -96,7 +96,7 @@ public class UserService {
         return repo.findById(u.getUserId());
     }
 
-    public User findById (int id) {
+    public User findById(int id) {
         try {
             return repo.findById(id);
         } catch (Exception e) {

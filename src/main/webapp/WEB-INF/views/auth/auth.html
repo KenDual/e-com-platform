@@ -336,6 +336,10 @@
                 Remember your password?
                 <a href="#" onclick="showPage('loginPage')">Sign in</a>
             </div>
+                                                        <div th:if="${info}" class="alert alert-success" th:text="${info}"></div>
+                                                        <div th:if="${otpError}" class="alert alert-danger" th:text="${otpError}"></div>
+                                                        <div th:if="${signupSuccess}" class="alert alert-success" th:text="${signupSuccess}"></div>
+                                                        <div th:if="${signupError}" class="alert alert-danger" th:text="${signupError}"></div>
         </div>
 
         <!-- OTP Verification Page -->
