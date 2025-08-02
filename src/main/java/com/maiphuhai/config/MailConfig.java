@@ -3,6 +3,7 @@ package com.maiphuhai.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
@@ -10,6 +11,12 @@ import java.util.Properties;
 
 @Configuration
 public class MailConfig {
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
     @Bean
     public JavaMailSender mailSender(
             @Value("${spring.mail.host}") String host,
