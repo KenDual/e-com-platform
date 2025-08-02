@@ -1,6 +1,9 @@
 package com.maiphuhai.config;
 
+import com.maiphuhai.security.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -14,7 +17,12 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
+@ComponentScan("com.maiphuhai")
 public class SecurityConfig {
+
+    @Autowired
+    private CustomUserDetailsService uds;
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -41,9 +49,11 @@ public class SecurityConfig {
 
                 /* ---------- Form login ---------- */
                 .formLogin(login -> login
-                        .loginPage("/login")           // GET hiển thị form
-                        .loginProcessingUrl("/login")  // POST submit
-                        .defaultSuccessUrl("/", true)
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .usernameParameter("email")   // nếu form dùng name="email"
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/products", true)
                         .failureUrl("/login?error")
                         .permitAll()
                 )
@@ -58,7 +68,9 @@ public class SecurityConfig {
                 /* ---------- CSRF ---------- */
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/h2-console/**") // nếu dùng
-                );
+                )
+
+                .userDetailsService(uds);
 
         return http.build();
     }

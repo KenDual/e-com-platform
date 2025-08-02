@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 
-//@Entity
-//@Table(name = "users")
+@Entity
+@Table(name = "users")
 public class User {
 
-//    @Id
-//    @GeneratedValue
+    @Id
+    @GeneratedValue
 
     private int     userId;
     private String  username;

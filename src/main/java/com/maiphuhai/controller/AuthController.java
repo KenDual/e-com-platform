@@ -132,11 +132,4 @@ public class AuthController {
         ra.addFlashAttribute("signupSuccess","Đổi mật khẩu thành công! Đăng nhập lại.");
         return "redirect:/login";
     }
-
-    /* ----------- LOGOUT THỦ CÔNG ----------- */
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login?logout";
-    }
 }
