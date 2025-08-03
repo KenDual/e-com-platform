@@ -11,7 +11,9 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    /** địa chỉ from – lấy luôn username */
+    /**
+     * địa chỉ from – lấy luôn username
+     */
     @Value("${spring.mail.username}")
     private String from;
 
@@ -19,14 +21,14 @@ public class EmailService {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(from);
         msg.setTo(to);
-        msg.setSubject("[E-Com] Mã OTP đặt lại mật khẩu");
+        msg.setSubject("[E-Com] OTP Code for Password Reset");
         msg.setText("""
-                Xin chào,
-
-                Mã OTP của bạn là: %s
-                OTP có hiệu lực trong 10 phút.
-
-                Nếu không phải bạn yêu cầu, hãy bỏ qua email này.
+                Hello,
+                
+                Your OTP code is: %s
+                The OTP is valid for 10 minutes.
+                
+                If you did not request this, please ignore this email.
                 """.formatted(otp));
         mailSender.send(msg);
     }
