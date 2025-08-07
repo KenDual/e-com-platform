@@ -1,14 +1,22 @@
 #cài FastAPI
 pip install fastapi uvicorn[standard] faiss-cpu pandas numpy sqlalchemy pyodbc requests python-dotenv
 
+# cài đặt môi trường
+pip install pyodbc
+
 # chạy
 uvicorn main:app --reload --port 8000
+
+# trong terminal khác
+ollama pull nomic-embed-text
+ollama pull llama3:8b
+
 
 # ───────────────────────── BƯỚC 0 ─────────────────────────
 # Tạo virtual-env & cài thư viện
 python -m venv .venv
 # Windows
-. .venv\Scripts\activate
+.venv\Scripts\activate
 # macOS / Linux
 # source .venv/bin/activate
 
@@ -21,10 +29,13 @@ pip install fastapi "uvicorn[standard]" pandas numpy sqlalchemy python-dotenv fa
 DB_DSN=mssql+pyodbc://user:pass@localhost/Ecommerce?driver=ODBC+Driver+17+for+SQL+Server
 OLLAMA_BASE=http://localhost:11434
 
+DB_DSN=mssql+pyodbc://sa:YourPassword@localhost:1433/Ecommerce?driver=ODBC+Driver+17+for+SQL+Server
+OLLAMA_BASE=http://localhost:11434
 
 # ───────────────────────── BƯỚC 2 ─────────────────────────
 # Chạy script sinh embedding 768-dim, ghi DB & tạo laptop_faiss.index
 python gen_embeddings_768.py
+
 
 
 # ───────────────────────── BƯỚC 3 ─────────────────────────
