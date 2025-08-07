@@ -26,11 +26,12 @@ pip install fastapi "uvicorn[standard]" pandas numpy sqlalchemy python-dotenv fa
 # ───────────────────────── BƯỚC 1 ─────────────────────────
 # Tạo file .env trong thư mục dự án (ai-service/.env)
 
-DB_DSN=mssql+pyodbc://user:pass@localhost/Ecommerce?driver=ODBC+Driver+17+for+SQL+Server
-OLLAMA_BASE=http://localhost:11434
-
+# file .env backup
 DB_DSN=mssql+pyodbc://sa:YourPassword@localhost:1433/Ecommerce?driver=ODBC+Driver+17+for+SQL+Server
 OLLAMA_BASE=http://localhost:11434
+MODEL_EMBED=nomic-embed-text
+MODEL_GEN=llama3.1:8b
+FAISS_INDEX_PATH=laptop_faiss.index
 
 # ───────────────────────── BƯỚC 2 ─────────────────────────
 # Chạy script sinh embedding 768-dim, ghi DB & tạo laptop_faiss.index

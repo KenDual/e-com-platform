@@ -40,8 +40,6 @@
         </dependency>
 
         <!-- (đã có) spring-webmvc, thymeleaf, jdbc… -->
-
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
@@ -74,11 +72,13 @@
             <artifactId>jakarta.validation-api</artifactId>
             <version>3.0.2</version>
         </dependency>
+
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>8.0.1.Final</version>
         </dependency>
+
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>jakarta.el</artifactId>
@@ -127,6 +127,12 @@
             <version>3.0.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
         <!-- JDBC driver SQL Server -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -154,6 +160,11 @@
         </dependency>
 
         <!-- ===== NEW: JUnit for Testing (Optional) ===== -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+            <version>1.1.13</version> <!-- Compatible with Spring 6.1.5 -->
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
