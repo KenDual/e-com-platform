@@ -36,44 +36,51 @@ public class ChatController {
     @GetMapping(value = "/api/chat", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ChatResponseVM chat(@RequestParam("q") String q) {
-        // Gọi AI
-        AiResponseDTO res = aiService.ask(q);
+        try {
+            AiResponseDTO res = aiService.ask(q);
 
-        // Lấy list ProductId từ AI
-        List<Integer> ids = res.products() == null ? List.of() :
-                res.products().stream()
-                        .map(p -> p.id() == null ? null : p.id().intValue())
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .collect(Collectors.toList());
+            List<Integer> ids = res.products() == null ? List.of() :
+                    res.products().stream()
+                            .map(p -> p.id() == null ? null : p.id().intValue())
+                            .filter(Objects::nonNull)
+                            .distinct()
+                            .collect(Collectors.toList());
 
-        // Enrich từ DB: Description, ImageCover, Price_VND
-        Map<Integer, ProductBrief> briefMap = productRepository.findBriefByIds(ids);
+            // ⬇️ Quan trọng: KHÔNG gọi repo nếu ids rỗng
+            Map<Integer, ProductBrief> briefMap = ids.isEmpty()
+                    ? Map.of()
+                    : productRepository.findBriefByIds(ids);
 
-        // Gộp AI + DB thành VM cho UI
-        List<ChatProductVM> vms = res.products() == null ? List.of() :
-                res.products().stream().map(p -> {
-                    ProductBrief b = (p.id() == null) ? null : briefMap.get(p.id().intValue());
-                    Long priceFromDb = (b == null) ? null : b.priceVnd();
-                    String img = (p.image() != null && !p.image().isBlank())
-                            ? p.image()
-                            : (b != null ? b.imageCover() : null);
+            List<ChatProductVM> vms = res.products() == null ? List.of() :
+                    res.products().stream().map(p -> {
+                        ProductBrief b = (p.id() == null) ? null : briefMap.get(p.id().intValue());
+                        Long priceFromDb = (b == null) ? null : b.priceVnd();
+                        String img = (p.image() != null && !p.image().isBlank())
+                                ? p.image()
+                                : (b != null ? b.imageCover() : null);
 
-                    return new ChatProductVM(
-                            p.id(),
-                            p.name(),
-                            p.company(),
-                            priceFromDb,
-                            p.specs(),
-                            img,
-                            b != null ? b.description() : null
-                    );
-                }).collect(Collectors.toList());
+                        return new ChatProductVM(
+                                p.id(),
+                                p.name(),
+                                p.company(),
+                                priceFromDb,
+                                p.specs(),
+                                img,
+                                b != null ? b.description() : null
+                        );
+                    }).collect(Collectors.toList());
 
-        return new ChatResponseVM(res.answer(), vms);
+            return new ChatResponseVM(res.answer(), vms);
+        } catch (Exception ex) {
+            // Log thật rõ để lần sau tra nhanh stacktrace
+            ex.printStackTrace();
+            return new ChatResponseVM(
+                    "Sorry,the system is busy. Please wait for a second ",
+                    List.of()
+            );
+        }
     }
 
-    // 3) (Tuỳ chọn) Giữ lại trang recommend render server-side
     @GetMapping("/recommend")
     public String recommend(@RequestParam("q") String query, Model model) {
         AiResponseDTO res = aiService.ask(query);
