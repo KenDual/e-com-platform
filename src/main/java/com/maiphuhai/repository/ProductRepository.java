@@ -1,5 +1,6 @@
 package com.maiphuhai.repository;
 
+import com.maiphuhai.DTO.ProductBrief;
 import com.maiphuhai.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -8,10 +9,13 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class ProductRepository {
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -79,5 +83,21 @@ public class ProductRepository {
     public List<Product> findAllSortedByDesc() {
         String sql = "SELECT * FROM Products WHERE IsActive = 1 ORDER BY ProductName DESC";
         return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
+    }
+
+    public Map<Integer, ProductBrief> findBriefByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) return Collections.emptyMap();
+
+        String placeholders = ids.stream().map(i -> "?").collect(Collectors.joining(","));
+        String sql = "SELECT ProductId, Description, ImageCover, Price_VND FROM Products WHERE ProductId IN (" + placeholders + ")";
+
+        List<ProductBrief> list = jdbcTemplate.query(sql, (rs, rowNum) -> new ProductBrief(
+                rs.getInt("ProductId"),
+                rs.getString("Description"),
+                rs.getString("ImageCover"),
+                rs.getLong("Price_VND")
+        ), ids.toArray());
+
+        return list.stream().collect(Collectors.toMap(ProductBrief::productId, Function.identity()));
     }
 }

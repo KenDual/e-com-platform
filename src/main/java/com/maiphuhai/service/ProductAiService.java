@@ -25,6 +25,9 @@ public class ProductAiService {
                             @Value("${ai.timeout:5000}") long timeoutMs) {
         this.client  = aiWebClient;
         this.timeout = Duration.ofMillis(timeoutMs);
+
+        //Log for AI chat
+        System.out.println("[AI] baseUrl=" + aiWebClient + " timeout=" + timeoutMs);
     }
 
     /**
@@ -47,5 +50,6 @@ public class ProductAiService {
         } catch (Exception ex) {
             throw new IllegalStateException("Cannot connect to AI service: " + ex.getMessage(), ex);
         }
+
     }
 }

@@ -4,8 +4,7 @@ pip install fastapi uvicorn[standard] faiss-cpu pandas numpy sqlalchemy pyodbc r
 # cài đặt môi trường
 pip install pyodbc
 
-# chạy
-uvicorn main:app --reload --port 8000
+
 
 # trong terminal khác
 ollama pull nomic-embed-text
