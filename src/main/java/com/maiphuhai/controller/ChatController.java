@@ -9,7 +9,6 @@ import com.maiphuhai.service.ProductAiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -79,13 +78,5 @@ public class ChatController {
                     List.of()
             );
         }
-    }
-
-    @GetMapping("/recommend")
-    public String recommend(@RequestParam("q") String query, Model model) {
-        AiResponseDTO res = aiService.ask(query);
-        model.addAttribute("answer", res.answer());
-        model.addAttribute("products", res.products());
-        return "recommend";
     }
 }
