@@ -1,36 +1,53 @@
 package com.maiphuhai.config;
 
+import io.netty.channel.ChannelOption;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
-import java.time.Duration;
 
 @Configuration
 public class AiClientConfig {
 
-    /**
-     * Tạo WebClient với:
-     *  • baseUrl lấy từ file properties
-     *  • timeout (kết nối + đọc) cũng đọc từ properties
-     *  • tăng mặc định buffersize để nhận JSON lớn (nếu cần)
-     */
-    @Bean
-    public WebClient aiWebClient(
+    @Primary
+    @Bean("ollamaWebClient")
+    public WebClient ollamaWebClient(
             @Value("${ai.base-url}") String baseUrl,
-            @Value("${ai.timeout:60000}") long timeoutMs) {
+            @Value("${ai.timeout:120000}") long timeoutMs) {
 
-        HttpClient http = HttpClient.create()
-                .responseTimeout(Duration.ofMillis(timeoutMs));
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofMillis(timeoutMs))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) timeoutMs);
 
         return WebClient.builder()
-                .baseUrl(baseUrl) // http://localhost:11434
+                .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .clientConnector(new ReactorClientHttpConnector(http))
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(c -> c.defaultCodecs().maxInMemorySize(8 * 1024 * 1024))
+                        .build())
+                .build();
+    }
+
+    @Bean("retrieverWebClient")
+    public WebClient retrieverWebClient(
+            @Value("${ai.retriever-url}") String baseUrl,
+            @Value("${ai.timeout:120000}") long timeoutMs) {
+
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofMillis(timeoutMs))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) timeoutMs);
+
+        return WebClient.builder()
+                .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
 }

@@ -4,20 +4,16 @@ pip install fastapi uvicorn[standard] faiss-cpu pandas numpy sqlalchemy pyodbc r
 # cài đặt môi trường
 pip install pyodbc
 
-
+pip install -U pip
 
 # trong terminal khác
 ollama pull nomic-embed-text
 ollama pull llama3.1:8b
 
-
-# ───────────────────────── BƯỚC 0 ─────────────────────────
 # Tạo virtual-env & cài thư viện
 python -m venv .venv
-# Windows
+
 .venv\Scripts\activate
-# macOS / Linux
-# source .venv/bin/activate
 
 pip install fastapi "uvicorn[standard]" pandas numpy sqlalchemy python-dotenv faiss-cpu tqdm requests
 

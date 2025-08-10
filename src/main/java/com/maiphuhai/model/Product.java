@@ -18,14 +18,15 @@ public class Product {
     private String GPU_Type;
     private double Weight_Kg;
     private String OperatingSystem;
+    private String Battery_Life_Hours;
     private double Price_VND;
     private int StockQty;
     private Timestamp CreatedAt;
     private boolean IsActive;
 
-    public Product(){}
+    public Product() {}
 
-    public Product(int productID, String company, String productName, String typeName, double screenSize_Inch, String screenResolution, String CPU_Company, String CPU_Type, double CPU_Freq_GHz, int ram_GB, String storage, String GPU_Company, String GPU_Type, double weight_Kg, String operatingSystem, double price_VND, int stockQty, Timestamp createdAt, boolean isActive) {
+    public Product(int productID, String company, String productName, String typeName, double screenSize_Inch, String screenResolution, String CPU_Company, String CPU_Type, double CPU_Freq_GHz, int ram_GB, String storage, String GPU_Company, String GPU_Type, double weight_Kg, String operatingSystem, String battery_Life_Hours, double price_VND, int stockQty, Timestamp createdAt, boolean isActive) {
         ProductID = productID;
         Company = company;
         ProductName = productName;
@@ -41,6 +42,7 @@ public class Product {
         this.GPU_Type = GPU_Type;
         Weight_Kg = weight_Kg;
         OperatingSystem = operatingSystem;
+        Battery_Life_Hours = battery_Life_Hours;
         Price_VND = price_VND;
         StockQty = stockQty;
         CreatedAt = createdAt;
@@ -165,6 +167,14 @@ public class Product {
 
     public void setOperatingSystem(String operatingSystem) {
         OperatingSystem = operatingSystem;
+    }
+
+    public String getBattery_Life_Hours() {
+        return Battery_Life_Hours;
+    }
+
+    public void setBattery_Life_Hours(String battery_Life_Hours) {
+        Battery_Life_Hours = battery_Life_Hours;
     }
 
     public double getPrice_VND() {

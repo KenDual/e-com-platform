@@ -13,12 +13,10 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // Find all products
     public List<Product> findAll() {
         return productRepository.findAll();
     }
 
-    //Find by Acs price
     public List<Product> findByAscPrice() {
         return productRepository.findAllSortedByAcs();
     }
@@ -26,6 +24,4 @@ public class ProductService {
     public List<Product> findByDescPrice() {
         return productRepository.findAllSortedByDesc();
     }
-
-
 }
