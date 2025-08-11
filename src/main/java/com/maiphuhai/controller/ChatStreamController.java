@@ -52,7 +52,7 @@ public class ChatStreamController {
             // retriever lỗi -> xin lỗi ngắn + final rỗng
             try {
                 emitter.send(SseEmitter.event().name("delta")
-                        .data("{\"text\":\"Xin lỗi, dịch vụ tìm kiếm sản phẩm đang gặp sự cố.\"}"));
+                        .data("{\"text\":\"Sorry the system is busy.\"}"));
                 String finalJson = om.writeValueAsString(Map.of(
                         "products", List.of(),
                         "turnsLeft", 4,

@@ -8,45 +8,44 @@
     <style>
         .pane {
             height: calc(100vh - 170px);
-            overflow: hidden;
+            overflow: hidden
         }
 
         .scroll-area {
             height: 100%;
-            overflow-y: auto;
+            overflow-y: auto
         }
+
         .msg {
             padding: .6rem .8rem;
             border-radius: .75rem;
             margin: .25rem 0;
-            max-width: 85%;
+            max-width: 85%
         }
+
         .msg.me {
             background: #e7f1ff;
-            margin-left: auto;
+            margin-left: auto
         }
+
         .msg.bot {
             background: #f5f5f5;
             margin-right: auto;
+            white-space: pre-wrap
         }
-        .muted {
-            color: #6c757d;
-        }
+
         .mono {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace
         }
     </style>
 </head>
 <body class="bg-light">
 <div class="container py-4">
-
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="m-0">Tư vấn laptop bằng AI</h3>
         <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">Trang chủ</a>
     </div>
 
-    <!-- Search bar (trên cùng, dùng chung cho chat) -->
     <div class="input-group input-group-lg mb-3">
         <label for="q" class="visually-hidden">Câu hỏi</label>
         <input id="q" type="text" class="form-control"
@@ -54,17 +53,12 @@
         <button id="btnSend" class="btn btn-primary" type="button">Hỏi AI</button>
     </div>
 
-    <!-- 2 cột cố định -->
     <div class="row g-3">
         <!-- LEFT: Chat -->
         <div class="col-lg-7">
             <div class="card shadow-sm pane">
-                <div class="card-header bg-white">
-                    <strong>Trò chuyện</strong>
-                </div>
-                <div id="chat" class="card-body d-flex flex-column scroll-area" aria-live="polite" aria-atomic="false">
-                    <!-- messages will be appended -->
-                </div>
+                <div class="card-header bg-white"><strong>Trò chuyện</strong></div>
+                <div id="chat" class="card-body d-flex flex-column scroll-area" aria-live="polite"></div>
                 <div class="card-footer bg-white">
                     <div class="input-group">
                         <label for="q2" class="visually-hidden">Tin nhắn</label>
@@ -85,210 +79,214 @@
                     <span id="count" class="badge text-bg-secondary">0</span>
                 </div>
                 <div id="products" class="card-body scroll-area">
-                    <div id="emptyRight" class="text-muted">
-                        Chưa có kết quả. Hãy nhập yêu cầu ở khung trên và gửi cho AI.
-                    </div>
+                    <div id="emptyRight" class="text-muted">Chưa có kết quả. Hãy nhập yêu cầu ở khung trên.</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- JS (Thymeleaf inline để resolve context) -->
 <script th:inline="javascript">
+    // URLs được Thymeleaf chèn đúng context-path (/Ecom_war)
     const API_CHAT_STREAM = /*[[@{/api/chat/stream}]]*/ '/api/chat/stream';
-    const PRODUCT_URL_PREFIX = /*[[@{/product}]]*/ '/product';
+    const PRODUCT_URL_PREFIX = /*[[@{/products}]]*/ '/products';
 
-    (function () {
-        const qMain = document.getElementById('q');
-        const qAlt = document.getElementById('q2');
-        const btn1 = document.getElementById('btnSend');
-        const btn2 = document.getElementById('btnSend2');
-        const chat = document.getElementById('chat');
-        const productsDiv = document.getElementById('products');
-        const countBadge = document.getElementById('count');
+    // --- DOM refs
+    const qMain = document.getElementById('q');
+    const qAlt = document.getElementById('q2');
+    const btn1 = document.getElementById('btnSend');
+    const btn2 = document.getElementById('btnSend2');
+    const chat = document.getElementById('chat');
+    const productsDiv = document.getElementById('products');
+    const countBadge = document.getElementById('count');
 
-        function setBusy(b) {
-            btn1.disabled = b;
-            btn2.disabled = b;
-            qMain.disabled = b;
-            qAlt.disabled = b;
+    // --- State
+    let es = null;
+
+    function setBusy(b) {
+        btn1.disabled = b;
+        btn2.disabled = b;
+        qMain.disabled = b;
+        qAlt.disabled = b;
+    }
+
+    function appendMsg(text, who) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (who === 'me' ? 'me' : 'bot');
+        div.textContent = text || '';
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        return div;
+    }
+
+    function priceFmt(vnd) {
+        if (vnd == null) return '—';
+        try {
+            return Number(vnd).toLocaleString('vi-VN') + ' ₫';
+        } catch {
+            return String(vnd) + ' ₫';
         }
+    }
 
-        function appendMsg(text, who) {
-            const div = document.createElement('div');
-            div.className = 'msg ' + (who === 'me' ? 'me' : 'bot');
-            div.textContent = text || '';
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-            return div;
+    function clearProducts() {
+        productsDiv.textContent = '';
+        const empty = document.createElement('div');
+        empty.id = 'emptyRight';
+        empty.className = 'text-muted';
+        empty.textContent = 'Không có sản phẩm phù hợp.';
+        productsDiv.appendChild(empty);
+        countBadge.textContent = '0';
+    }
+
+    function renderProducts(list) {
+        productsDiv.textContent = '';
+        const items = Array.isArray(list) ? list : [];
+        if (items.length === 0) return clearProducts();
+
+        items.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card mb-3';
+            const row = document.createElement('div');
+            row.className = 'row g-0';
+            card.appendChild(row);
+
+            const colImg = document.createElement('div');
+            colImg.className = 'col-4';
+            const img = document.createElement('img');
+            img.className = 'img-fluid rounded-start';
+            img.alt = p.name || 'Sản phẩm';
+            img.src = p.image || 'https://placehold.co/600x400?text=No+Image';
+            colImg.appendChild(img);
+            row.appendChild(colImg);
+
+            const colBody = document.createElement('div');
+            colBody.className = 'col-8';
+            const body = document.createElement('div');
+            body.className = 'card-body';
+            const title = document.createElement('h6');
+            title.className = 'card-title mb-1';
+            title.textContent = p.name || 'Sản phẩm';
+            const sub = document.createElement('div');
+            sub.className = 'text-muted small mb-1';
+            sub.textContent = p.company || p.brand || '';
+            const price = document.createElement('div');
+            price.className = 'mb-1 fw-semibold';
+            price.textContent = priceFmt(p.price);
+            body.append(title, sub, price);
+
+            if (p.specs) {
+                const specs = document.createElement('div');
+                specs.className = 'small mono mb-2';
+                specs.textContent = p.specs;
+                body.appendChild(specs);
+            }
+
+            const meta = document.createElement('div');
+            meta.className = 'small text-muted';
+            meta.textContent = `Trọng lượng: ${p.weight != null ? p.weight + ' kg' : '—'}  •  Pin: ${p.battery || '—'}`;
+            const line = document.createElement('div');
+            line.className = 'mt-2';
+            const btn = document.createElement('a');
+            btn.className = 'btn btn-sm btn-primary';
+            btn.href = `${PRODUCT_URL_PREFIX}?id=${encodeURIComponent(p.id ?? '')}`;
+            btn.textContent = 'Xem chi tiết';
+            line.appendChild(btn);
+
+            body.append(meta, line);
+            colBody.appendChild(body);
+            row.appendChild(colBody);
+            productsDiv.appendChild(card);
+        });
+        countBadge.textContent = String(items.length);
+    }
+
+    function startStream(query) {
+        // đóng luồng cũ nếu còn
+        if (es) try {
+            es.close();
+        } catch {
         }
+        const url = `${API_CHAT_STREAM}?q=${encodeURIComponent(query)}&top_k=5`;
+        es = new EventSource(url);
 
-        function priceFmt(vnd) {
-            if (vnd == null) return '—';
+        const botBubble = appendMsg('', 'bot');
+        let gotFirstDelta = false;
+
+        es.addEventListener('ready', e => console.log('ready', e.data));
+
+        es.addEventListener('delta', e => {
             try {
-                return Number(vnd).toLocaleString('vi-VN') + ' ₫';
-            } catch {
-                return String(vnd) + ' ₫';
-            }
-        }
-
-        function clearProducts() {
-            productsDiv.textContent = '';
-            const empty = document.createElement('div');
-            empty.id = 'emptyRight';
-            empty.className = 'text-muted';
-            empty.textContent = 'Không có sản phẩm phù hợp.';
-            productsDiv.appendChild(empty);
-            countBadge.textContent = '0';
-        }
-
-        function renderProducts(list) {
-            productsDiv.textContent = '';
-            const items = Array.isArray(list) ? list : [];
-            if (items.length === 0) {
-                clearProducts();
-                return;
-            }
-
-            items.forEach(p => {
-                // Card container
-                const card = document.createElement('div');
-                card.className = 'card mb-3';
-
-                const row = document.createElement('div');
-                row.className = 'row g-0';
-                card.appendChild(row);
-
-                // Image
-                const colImg = document.createElement('div');
-                colImg.className = 'col-4';
-                const img = document.createElement('img');
-                img.className = 'img-fluid rounded-start';
-                img.alt = p.name || 'Sản phẩm';
-                img.src = p.image ? p.image : 'https://placehold.co/600x400?text=No+Image';
-                colImg.appendChild(img);
-                row.appendChild(colImg);
-
-                // Body
-                const colBody = document.createElement('div');
-                colBody.className = 'col-8';
-                const body = document.createElement('div');
-                body.className = 'card-body';
-                colBody.appendChild(body);
-                row.appendChild(colBody);
-
-                const title = document.createElement('h6');
-                title.className = 'card-title mb-1';
-                title.textContent = p.name || 'Sản phẩm';
-                body.appendChild(title);
-
-                const sub = document.createElement('div');
-                sub.className = 'text-muted small mb-1';
-                sub.textContent = p.company || p.brand || '';
-                body.appendChild(sub);
-
-                const price = document.createElement('div');
-                price.className = 'mb-1 fw-semibold';
-                price.textContent = priceFmt(p.price);
-                body.appendChild(price);
-
-                if (p.specs) {
-                    const specs = document.createElement('div');
-                    specs.className = 'small mono mb-2';
-                    specs.textContent = p.specs;
-                    body.appendChild(specs);
-                }
-
-                const meta = document.createElement('div');
-                meta.className = 'small text-muted';
-                meta.textContent =
-                    `Trọng lượng: ${p.weight != null ? p.weight + ' kg' : '—'}  •  Pin: ${p.battery || '—'}`;
-                body.appendChild(meta);
-
-                const line = document.createElement('div');
-                line.className = 'mt-2';
-                const btn = document.createElement('a');
-                btn.className = 'btn btn-sm btn-primary';
-                btn.href = `${PRODUCT_URL_PREFIX}?id=${encodeURIComponent(p.id ?? '')}`;
-                btn.textContent = 'Xem chi tiết';
-                line.appendChild(btn);
-                body.appendChild(line);
-
-                productsDiv.appendChild(card);
-            });
-
-            countBadge.textContent = String(items.length);
-        }
-
-        function startStream(query) {
-            const url = `${API_CHAT_STREAM}?q=${encodeURIComponent(query)}&top_k=5`;
-            const es = new EventSource(url);
-
-            // Bubble bot để stream
-            const botBubble = appendMsg('Đang soạn…', 'bot');
-
-            es.addEventListener('ready', () => {
-                // có thể hiển thị gì đó; đã có "Đang soạn…" rồi nên thôi
-            });
-
-            es.addEventListener('delta', (e) => {
-                try {
-                    const data = JSON.parse(e.data || '{}');
-                    if (data && typeof data.text === 'string') {
-                        // chỉ plaintext
-                        botBubble.textContent += data.text;
-                        chat.scrollTop = chat.scrollHeight;
+                const data = JSON.parse(e.data || '{}');
+                if (typeof data.text === 'string') {
+                    if (!gotFirstDelta) {
+                        botBubble.textContent = '';
+                        gotFirstDelta = true;
                     }
-                } catch { /* bỏ qua dòng lỗi */
+                    botBubble.textContent += data.text;
+                    chat.scrollTop = chat.scrollHeight;
                 }
-            });
-
-            es.addEventListener('final', (e) => {
-                try {
-                    const payload = JSON.parse(e.data || '{}');
-                    const list = (payload && Array.isArray(payload.products)) ? payload.products : [];
-                    renderProducts(list);
-                } catch (err) {
-                    console.error('final parse error', err);
-                } finally {
-                    es.close();
-                    setBusy(false);
-                }
-            });
-
-            es.addEventListener('error', (e) => {
-                console.error('SSE error', e);
-                es.close();
-                botBubble.textContent += '\n[Luồng bị gián đoạn. Bạn có thể thử lại.]';
-                setBusy(false);
-            });
-        }
-
-        function sendQuery(q) {
-            const query = (q || '').trim();
-            if (!query) return;
-            setBusy(true);
-            appendMsg(query, 'me');
-            startStream(query);
-        }
-
-        // Events
-        btn1.addEventListener('click', () => sendQuery(qMain.value));
-        btn2.addEventListener('click', () => sendQuery(qAlt.value));
-        qMain.addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendQuery(qMain.value);
+            } catch (_) {
             }
         });
-        qAlt.addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendQuery(qAlt.value);
+
+        // Hỗ trợ cả hai kiểu: 'final' {products:[...]} hoặc 'products' gửi thẳng mảng
+        const handleProducts = (payload) => {
+            const list = Array.isArray(payload) ? payload : (payload && payload.products) || [];
+            renderProducts(list);
+        };
+
+        es.addEventListener('final', e => {
+            try {
+                handleProducts(JSON.parse(e.data || '{}'));
+            } catch (err) {
+                console.error('final parse', err);
             }
         });
-    })();
+
+        es.addEventListener('products', e => {
+            try {
+                handleProducts(JSON.parse(e.data || '[]'));
+            } catch (err) {
+                console.error('products parse', err);
+            }
+        });
+
+        es.addEventListener('done', () => {
+            setBusy(false);
+            es.close();
+        });
+        es.addEventListener('error', e => {
+            console.error('SSE error', e);
+            botBubble.textContent += '\n[Luồng bị gián đoạn. Thử lại nhé]';
+            setBusy(false);
+            es.close();
+        });
+    }
+
+    function sendQuery(q) {
+        const query = (q || '').trim();
+        if (!query) return;
+        setBusy(true);
+        appendMsg(query, 'me');
+        clearProducts();
+        startStream(query);
+    }
+
+    // Bind events
+    btn1.addEventListener('click', () => sendQuery(qMain.value));
+    btn2.addEventListener('click', () => sendQuery(qAlt.value));
+    qMain.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendQuery(qMain.value);
+        }
+    });
+    qAlt.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendQuery(qAlt.value);
+        }
+    });
 </script>
 </body>
 </html>
