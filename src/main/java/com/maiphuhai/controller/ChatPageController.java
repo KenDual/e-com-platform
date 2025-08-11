@@ -10,5 +10,4 @@ public class ChatPageController {
     public String chat() {
         return "chatbox";
     }
-
 }

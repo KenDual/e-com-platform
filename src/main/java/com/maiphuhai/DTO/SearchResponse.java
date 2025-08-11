@@ -1,6 +1,5 @@
 package com.maiphuhai.DTO;
 
-import com.maiphuhai.model.Product;
 import java.util.List;
 
 public class SearchResponse {

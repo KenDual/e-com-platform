@@ -35,8 +35,7 @@ public class ChatStreamController {
 
         // 1) ready
         try {
-            emitter.send(SseEmitter.event()
-                    .name("ready")
+            emitter.send(SseEmitter.event().name("ready")
                     .data("{\"ts\":" + System.currentTimeMillis() + "}"));
         } catch (Exception e) {
             emitter.completeWithError(e);
@@ -44,56 +43,69 @@ public class ChatStreamController {
         }
 
         // 2) retrieve
-        List<AiProduct> products;
+        final java.util.List<AiProduct> products;
         try {
             SearchResponse resp = retriever.search(q, topK);
-            products = (resp != null && resp.getProducts() != null) ? resp.getProducts() : List.of();
+            products = (resp != null && resp.getProducts() != null) ? resp.getProducts() : java.util.List.of();
         } catch (Exception e) {
-            // retriever lỗi -> xin lỗi ngắn + final rỗng
             try {
                 emitter.send(SseEmitter.event().name("delta")
-                        .data("{\"text\":\"Sorry the system is busy.\"}"));
-                String finalJson = om.writeValueAsString(Map.of(
-                        "products", List.of(),
+                        .data("{\"text\":\"Sorry, the system is busy...\"}"));
+                String finalJson = om.writeValueAsString(java.util.Map.of(
+                        "products", java.util.List.of(),
                         "turnsLeft", 4,
                         "error", "retriever_down"
                 ));
                 emitter.send(SseEmitter.event().name("final").data(finalJson));
-            } catch (Exception ignored) {
-            }
+                emitter.send(SseEmitter.event().name("done").data("{}"));
+            } catch (Exception ignored) {}
             emitter.complete();
             return emitter;
         }
 
-        // 3) build prompt (plain text)
+        // 3) prompt
         String prompt = buildPrompt(q, products);
 
-        // 4) stream LLM deltas
-        llm.streamToEmitter(prompt, emitter);
-
-        // 5) gửi final (khi đã bắn xong delta một lúc — ở đây gửi luôn sau 50ms)
-        new Thread(() -> {
+        // 4) stream LLM deltas -> khi xong: gửi products rồi done
+        try {
+            llm.streamToEmitter(
+                    prompt,
+                    emitter,
+                    () -> { // onComplete
+                        try {
+                            String json = om.writeValueAsString(products);
+                            emitter.send(SseEmitter.event().name("products").data(json));
+                            emitter.send(SseEmitter.event().name("done").data("{}"));
+                        } catch (Exception ignored) {
+                        } finally {
+                            emitter.complete();
+                        }
+                    },
+                    (Throwable err) -> { // onError
+                        try {
+                            emitter.send(SseEmitter.event().name("delta")
+                                    .data("{\"text\":\"Sorry, is seems AI got some trouble while answering.\"}"));
+                            emitter.send(SseEmitter.event().name("done").data("{}"));
+                        } catch (Exception ignored) {}
+                        emitter.complete();
+                    }
+            );
+        } catch (Exception e) {
             try {
-                Thread.sleep(50); // đủ để bắt đầu dòng delta
-                String finalJson = om.writeValueAsString(Map.of(
-                        "products", products,
-                        "turnsLeft", 4,
-                        "error", null
-                ));
-                emitter.send(SseEmitter.event().name("final").data(finalJson));
-            } catch (Exception ignored) {
-            } finally {
-                emitter.complete();
-            }
-        }).start();
+                emitter.send(SseEmitter.event().name("delta")
+                        .data("{\"text\":\"Sorry, AI can't start up.\"}"));
+                emitter.send(SseEmitter.event().name("done").data("{}"));
+            } catch (Exception ignored) {}
+            emitter.complete();
+        }
 
         return emitter;
     }
 
     private String buildPrompt(String q, List<AiProduct> products) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Người dùng hỏi: ").append(q).append("\n\n");
-        sb.append("Dưới đây là 5 sản phẩm liên quan (name | brand | price(VND) | weight(kg) | battery | specs ngắn):\n");
+        sb.append("User ask: ").append(q).append("\n\n");
+        sb.append("Here are up to 5 related products (name | brand | price(VND) | weight(kg) | battery | brief specs):\n");
         for (int i = 0; i < products.size(); i++) {
             AiProduct p = products.get(i);
             sb.append(i + 1).append(". ")
@@ -105,8 +117,9 @@ public class ChatStreamController {
                     .append(trimSpecs(p.getSpecs(), 180))
                     .append("\n");
         }
-        sb.append("\nHãy tư vấn ngắn gọn, rõ ràng bằng tiếng Việt, plaintext (không HTML). ");
-        sb.append("Ưu tiên nói lý do chọn, và nêu 2-3 lựa chọn phù hợp nhất.\n");
+        sb.append("You are a laptop shopping assistant. ");
+        sb.append("\nAnswer in ENGLISH ONLY. Plain text (no Markdown/HTML). ");
+        sb.append("Prioritize your choice by stating the reason, and list 2-3 most suitable options.\n");
         return sb.toString();
     }
 

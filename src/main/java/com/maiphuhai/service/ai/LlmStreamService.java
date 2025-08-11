@@ -1,10 +1,10 @@
 package com.maiphuhai.service.ai;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -15,61 +15,102 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class LlmStreamService {
     private final WebClient ollama;
     private final ObjectMapper om = new ObjectMapper();
-    private static final org.slf4j.Logger log =
-            org.slf4j.LoggerFactory.getLogger(LlmStreamService.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LlmStreamService.class);
 
     public LlmStreamService(@Qualifier("ollamaWebClient") WebClient ollama) {
         this.ollama = ollama;
     }
 
+    // Giữ method cũ nếu nơi khác còn dùng
     public void streamToEmitter(String prompt, SseEmitter emitter) {
-        AtomicBoolean done = new AtomicBoolean(false);
-        StringBuilder buf = new StringBuilder(4096);
+        streamToEmitter(prompt, emitter, () -> {}, err -> {});
+    }
+
+    // Bản chuẩn: có onComplete & onError
+    public void streamToEmitter(String prompt, SseEmitter emitter, Runnable onComplete, Consumer<Throwable> onError) {
+        AtomicBoolean completed = new AtomicBoolean(false);
+        StringBuilder carry = new StringBuilder(4096);
 
         ollama.post()
                 .uri("/api/generate")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_NDJSON) // <- quan trọng
+                .accept(MediaType.APPLICATION_NDJSON) // hoặc MediaType.valueOf("application/x-ndjson")
                 .bodyValue("""
-                            {"model":"llama3.1:8b","prompt":%s,"stream":true}
-                        """.formatted(escapeJson(prompt)))
+                {"model":"llama3.1:8b","prompt":%s,"stream":true}
+            """.formatted(escapeJson(prompt)))
                 .exchangeToFlux(resp -> {
                     if (resp.statusCode().is2xxSuccessful()) {
                         return resp.bodyToFlux(byte[].class);
                     } else {
-                        // đọc body lỗi để log ra, dễ debug khi model không tồn tại
                         return resp.bodyToMono(String.class)
                                 .doOnNext(body -> log.error("Ollama non-2xx {} body={}", resp.statusCode(), body))
                                 .flatMapMany(s -> reactor.core.publisher.Flux.error(
-                                        new IllegalStateException("Ollama HTTP " + resp.statusCode())
-                                ));
+                                        new IllegalStateException("Ollama HTTP " + resp.statusCode())));
                     }
                 })
                 .map(b -> new String(b, StandardCharsets.UTF_8))
                 .doOnSubscribe(s -> log.info("Ollama stream started"))
                 .subscribe(
-                        /* onNext */ chunk -> { /* như cũ */ },
-                        /* onError */ err -> {
-                            log.error("Ollama stream error", err);
-                            try {
-                                emitter.send(SseEmitter.event().name("error")
-                                        .data("{\"message\":\"ollama_error\"}"));
-                            } catch (Exception ignore) {
-                            }
-                            emitter.completeWithError(err);
-                        },
-                        /* onComplete */ () -> {
-                            log.info("Publisher completed");
-                            if (!done.get()) {
+                        chunk -> {
+                            // Gom chunk, xử lý theo từng dòng NDJSON
+                            carry.append(chunk);
+                            int idx;
+                            while ((idx = indexOfNewline(carry)) >= 0) {
+                                String line = carry.substring(0, idx).trim();
+                                carry.delete(0, idx + 1); // bỏ dòng + '\n'
+                                if (line.isEmpty()) continue;
                                 try {
-                                    emitter.send(SseEmitter.event().name("done").data("{}"));
-                                } catch (Exception ignore) {
+                                    JsonNode node = om.readTree(line);
+                                    if (node.hasNonNull("response")) {
+                                        String piece = node.get("response").asText();
+                                        emitter.send(SseEmitter.event()
+                                                .name("delta")
+                                                .data(om.writeValueAsString(java.util.Map.of("text", piece))));
+                                    }
+                                    if (node.has("done") && node.get("done").asBoolean(false)) {
+                                        // Kết thúc từ server
+                                        completed.set(true);
+                                    }
+                                } catch (Exception ex) {
+                                    log.warn("Drop bad NDJSON line: {}", line, ex);
                                 }
-                                emitter.complete();
+                            }
+                        },
+                        err -> {
+                            log.error("Ollama stream error", err);
+                            safeSend(emitter, SseEmitter.event().name("error")
+                                    .data("{\"message\":\"ollama_error\"}"));
+                            safeCompleteWithError(emitter, err);
+                            onError.accept(err);
+                        },
+                        () -> {
+                            log.info("Ollama stream completed");
+                            onComplete.run();         // để Controller quyết định bắn 'products' / 'done'
+                            if (!completed.get()) {
+                                // Dù sao cũng đóng cho chắc (Controller thường đã complete)
+                                safeSend(emitter, SseEmitter.event().name("done").data("{}"));
+                                safeComplete(emitter);
                             }
                         }
                 );
+    }
 
+    private static int indexOfNewline(StringBuilder sb) {
+        for (int i = 0; i < sb.length(); i++) {
+            char c = sb.charAt(i);
+            if (c == '\n') return i;
+        }
+        return -1;
+    }
+
+    private static void safeSend(SseEmitter emitter, SseEmitter.SseEventBuilder ev) {
+        try { emitter.send(ev); } catch (Exception ignored) {}
+    }
+    private static void safeComplete(SseEmitter emitter) {
+        try { emitter.complete(); } catch (Exception ignored) {}
+    }
+    private static void safeCompleteWithError(SseEmitter emitter, Throwable t) {
+        try { emitter.completeWithError(t); } catch (Exception ignored) {}
     }
 
     private static String escapeJson(String s) {

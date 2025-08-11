@@ -42,31 +42,31 @@
 <body class="bg-light">
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="m-0">Tư vấn laptop bằng AI</h3>
-        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">Trang chủ</a>
+        <h3 class="m-0">How can I help you ^^ - INTENSIFIER</h3>
+        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">Home Page</a>
     </div>
 
     <div class="input-group input-group-lg mb-3">
-        <label for="q" class="visually-hidden">Câu hỏi</label>
+        <label for="q" class="visually-hidden">Question</label>
         <input id="q" type="text" class="form-control"
-               placeholder="Ví dụ: laptop mỏng nhẹ gõ code, pin ≥8h, ~20–25 triệu" autocomplete="off">
-        <button id="btnSend" class="btn btn-primary" type="button">Hỏi AI</button>
+               placeholder="Describe your demands" autocomplete="off">
+        <button id="btnSend" class="btn btn-primary" type="button">Ask AI</button>
     </div>
 
     <div class="row g-3">
         <!-- LEFT: Chat -->
         <div class="col-lg-7">
             <div class="card shadow-sm pane">
-                <div class="card-header bg-white"><strong>Trò chuyện</strong></div>
+                <div class="card-header bg-white"><strong></strong></div>
                 <div id="chat" class="card-body d-flex flex-column scroll-area" aria-live="polite"></div>
                 <div class="card-footer bg-white">
                     <div class="input-group">
-                        <label for="q2" class="visually-hidden">Tin nhắn</label>
-                        <input id="q2" type="text" class="form-control" placeholder="Tiếp tục hỏi..."
+                        <label for="q2" class="visually-hidden">Message</label>
+                        <input id="q2" type="text" class="form-control" placeholder="Keep asking..."
                                autocomplete="off">
-                        <button id="btnSend2" class="btn btn-primary" type="button">Gửi</button>
+                        <button id="btnSend2" class="btn btn-primary" type="button">Send</button>
                     </div>
-                    <small class="text-muted">Nhấn Enter để gửi</small>
+                    <small class="text-muted">Press Enter to send</small>
                 </div>
             </div>
         </div>
@@ -75,11 +75,11 @@
         <div class="col-lg-5">
             <div class="card shadow-sm pane">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <strong>Kết quả sản phẩm</strong>
+                    <strong>Product Results</strong>
                     <span id="count" class="badge text-bg-secondary">0</span>
                 </div>
                 <div id="products" class="card-body scroll-area">
-                    <div id="emptyRight" class="text-muted">Chưa có kết quả. Hãy nhập yêu cầu ở khung trên.</div>
+                    <div id="emptyRight" class="text-muted">No results yet. Please enter your query above. </div>
                 </div>
             </div>
         </div>
@@ -87,7 +87,6 @@
 </div>
 
 <script th:inline="javascript">
-    // URLs được Thymeleaf chèn đúng context-path (/Ecom_war)
     const API_CHAT_STREAM = /*[[@{/api/chat/stream}]]*/ '/api/chat/stream';
     const PRODUCT_URL_PREFIX = /*[[@{/products}]]*/ '/products';
 
@@ -133,7 +132,7 @@
         const empty = document.createElement('div');
         empty.id = 'emptyRight';
         empty.className = 'text-muted';
-        empty.textContent = 'Không có sản phẩm phù hợp.';
+        empty.textContent = 'No matching products found.';
         productsDiv.appendChild(empty);
         countBadge.textContent = '0';
     }
@@ -154,7 +153,7 @@
             colImg.className = 'col-4';
             const img = document.createElement('img');
             img.className = 'img-fluid rounded-start';
-            img.alt = p.name || 'Sản phẩm';
+            img.alt = p.name || 'Product';
             img.src = p.image || 'https://placehold.co/600x400?text=No+Image';
             colImg.appendChild(img);
             row.appendChild(colImg);
@@ -165,7 +164,7 @@
             body.className = 'card-body';
             const title = document.createElement('h6');
             title.className = 'card-title mb-1';
-            title.textContent = p.name || 'Sản phẩm';
+            title.textContent = p.name || 'Product';
             const sub = document.createElement('div');
             sub.className = 'text-muted small mb-1';
             sub.textContent = p.company || p.brand || '';
@@ -183,13 +182,13 @@
 
             const meta = document.createElement('div');
             meta.className = 'small text-muted';
-            meta.textContent = `Trọng lượng: ${p.weight != null ? p.weight + ' kg' : '—'}  •  Pin: ${p.battery || '—'}`;
+            meta.textContent = `Weight: ${p.weight != null ? p.weight + ' kg' : '—'}  •  Pin: ${p.battery || '—'}`;
             const line = document.createElement('div');
             line.className = 'mt-2';
             const btn = document.createElement('a');
             btn.className = 'btn btn-sm btn-primary';
             btn.href = `${PRODUCT_URL_PREFIX}?id=${encodeURIComponent(p.id ?? '')}`;
-            btn.textContent = 'Xem chi tiết';
+            btn.textContent = 'View Details';
             line.appendChild(btn);
 
             body.append(meta, line);
@@ -229,7 +228,6 @@
             }
         });
 
-        // Hỗ trợ cả hai kiểu: 'final' {products:[...]} hoặc 'products' gửi thẳng mảng
         const handleProducts = (payload) => {
             const list = Array.isArray(payload) ? payload : (payload && payload.products) || [];
             renderProducts(list);
@@ -257,7 +255,7 @@
         });
         es.addEventListener('error', e => {
             console.error('SSE error', e);
-            botBubble.textContent += '\n[Luồng bị gián đoạn. Thử lại nhé]';
+            botBubble.textContent += '\n[Stream interrupted. Please try again]';
             setBusy(false);
             es.close();
         });
