@@ -50,12 +50,5 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <!-- (Nếu cần JSP backup) -->
-    <!--
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/jsp/"/>
-        <property name="suffix" value=".jsp"/>
-        <property name="order" value="2"/>
-    </bean>
-    -->
+
 </beans>
