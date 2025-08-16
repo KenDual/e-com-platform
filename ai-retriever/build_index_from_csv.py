@@ -94,6 +94,10 @@ def build_text(p: Dict[str, Any]) -> str:
     if p.get("price") is not None:  bits.append(f"Price: {int(p['price'])} VND")
     if p.get("weight") is not None: bits.append(f"Weight: {p['weight']} kg")
     if p.get("battery"): bits.append(f"Battery: {p['battery']}")
+    if p.get("suitable_tasks"):
+        bits.append(f"Suitable tasks: {p['suitable_tasks']}")
+    if p.get("suitable_jobs"):
+        bits.append(f"Suitable jobs: {p['suitable_jobs']}")
     return ". ".join(bits)
 
 
@@ -139,8 +143,9 @@ def load_csv(csv_path: str, eur_to_vnd: float = 27000.0) -> List[Dict[str, Any]]
     df = pd.read_csv(csv_path, encoding="utf-8-sig")
     # Đảm bảo các cột tồn tại, nếu thiếu thì tạo cột rỗng
     for col in ["Product", "Company", "Description", "TypeName", "Inches", "ScreenResolution",
-                "CPU_Company", "CPU_Type", "RAM", "Memory", "GPU", "OpSys",
-                "Weight (kg)", "Battery_life_hours", "Price_EURO"]:
+            "CPU_Company", "CPU_Type", "RAM", "Memory", "GPU", "OpSys",
+            "Weight (kg)", "Battery_life_hours", "Price_EURO",
+            "suitable_tasks", "suitable_jobs"]:
         if col not in df.columns:
             df[col] = None
 
@@ -160,12 +165,15 @@ def load_csv(csv_path: str, eur_to_vnd: float = 27000.0) -> List[Dict[str, Any]]
             euro = _num_from_text(r["Price_EURO"])
             if euro is not None and eur_to_vnd and eur_to_vnd > 0:
                 price = float(euro) * float(eur_to_vnd)
-
+    
         row_full = {c: r[c] for c in df.columns}
         specs = build_specs(row_full)
 
+        suitable_tasks = (str(r["suitable_tasks"]).strip() if pd.notna(r["suitable_tasks"]) else None)
+        suitable_jobs  = (str(r["suitable_jobs"]).strip()  if pd.notna(r["suitable_jobs"])  else None)
+
         items.append({
-            "id": None,  # sẽ gán fallback phía dưới
+            "id": None,
             "name": name,
             "brand": brand,
             "company": company,
@@ -173,7 +181,9 @@ def load_csv(csv_path: str, eur_to_vnd: float = 27000.0) -> List[Dict[str, Any]]
             "image": None,
             "price": price,
             "weight": weight,
-            "battery": battery
+            "battery": battery,
+            "suitable_tasks": suitable_tasks,
+            "suitable_jobs": suitable_jobs,
         })
     return items
 
@@ -248,7 +258,9 @@ def main():
             "image": p.get("image"),
             "price": p.get("price"),
             "weight": p.get("weight"),
-            "battery": p.get("battery")
+            "battery": p.get("battery"),
+            "suitable_tasks": p.get("suitable_tasks"),
+        "suitable_jobs": p.get("suitable_jobs"),
         })
     write_jsonl(meta_items, args.meta_out)
 

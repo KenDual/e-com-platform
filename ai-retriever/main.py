@@ -50,6 +50,8 @@ class Product(BaseModel):
     price: Optional[float] = Field(default=None, description="VND, numeric if available")
     weight: Optional[float] = None
     battery: Optional[str] = None
+    suitable_tasks: Optional[str] = None
+    suitable_jobs: Optional[str] = None
 
 class SearchResponse(BaseModel):
     products: List[Product]
@@ -133,6 +135,8 @@ def load_metadata_jsonl(path: str) -> Dict[int, Dict[str, Any]]:
             except Exception:
                 weight = None
             battery = obj.get("battery")
+            suitable_tasks = obj.get("suitable_tasks")
+            suitable_jobs  = obj.get("suitable_jobs")
 
             out[int(vid)] = {
                 "id": pid,
@@ -144,6 +148,8 @@ def load_metadata_jsonl(path: str) -> Dict[int, Dict[str, Any]]:
                 "price": price,
                 "weight": weight,
                 "battery": battery,
+                "suitable_tasks": suitable_tasks,
+                "suitable_jobs": suitable_jobs,
             }
     return out
 
@@ -268,6 +274,8 @@ async def search(
             price=meta.get("price"),
             weight=meta.get("weight"),
             battery=meta.get("battery"),
+            suitable_tasks=meta.get("suitable_tasks"),
+            suitable_jobs=meta.get("suitable_jobs"),
         ))
 
     return SearchResponse(products=products)
