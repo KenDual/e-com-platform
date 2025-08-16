@@ -260,7 +260,7 @@ def main():
             "weight": p.get("weight"),
             "battery": p.get("battery"),
             "suitable_tasks": p.get("suitable_tasks"),
-        "suitable_jobs": p.get("suitable_jobs"),
+            "suitable_jobs": p.get("suitable_jobs"),
         })
     write_jsonl(meta_items, args.meta_out)
 
