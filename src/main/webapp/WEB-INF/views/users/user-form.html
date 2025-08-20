@@ -256,6 +256,17 @@
         </div>
 
         <div class="form-floating">
+            <input type="email"
+                   th:field="*{email}"
+                   class="form-control"
+                   id="email"
+                   placeholder="Email"
+                   autocomplete="email" required>
+            <label for="email">Email</label>
+            <i class="fas fa-envelope input-icon"></i>
+        </div>
+
+        <div class="form-floating">
             <input type="password"
                    th:field="*{passwordHash}"
                    class="form-control"

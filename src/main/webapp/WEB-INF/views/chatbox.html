@@ -200,7 +200,6 @@
     }
 
     function startStream(query) {
-        // đóng luồng cũ nếu còn
         if (es) try {
             es.close();
         } catch {

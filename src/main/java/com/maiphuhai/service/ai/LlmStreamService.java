@@ -21,12 +21,10 @@ public class LlmStreamService {
         this.ollama = ollama;
     }
 
-    // Giữ method cũ nếu nơi khác còn dùng
     public void streamToEmitter(String prompt, SseEmitter emitter) {
         streamToEmitter(prompt, emitter, () -> {}, err -> {});
     }
 
-    // Bản chuẩn: có onComplete & onError
     public void streamToEmitter(String prompt, SseEmitter emitter, Runnable onComplete, Consumer<Throwable> onError) {
         AtomicBoolean completed = new AtomicBoolean(false);
         StringBuilder carry = new StringBuilder(4096);
@@ -34,7 +32,7 @@ public class LlmStreamService {
         ollama.post()
                 .uri("/api/generate")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_NDJSON) // hoặc MediaType.valueOf("application/x-ndjson")
+                .accept(MediaType.APPLICATION_NDJSON)
                 .bodyValue("""
                 {"model":"llama3.1:8b","prompt":%s,"stream":true}
             """.formatted(escapeJson(prompt)))
@@ -52,12 +50,11 @@ public class LlmStreamService {
                 .doOnSubscribe(s -> log.info("Ollama stream started"))
                 .subscribe(
                         chunk -> {
-                            // Gom chunk, xử lý theo từng dòng NDJSON
                             carry.append(chunk);
                             int idx;
                             while ((idx = indexOfNewline(carry)) >= 0) {
                                 String line = carry.substring(0, idx).trim();
-                                carry.delete(0, idx + 1); // bỏ dòng + '\n'
+                                carry.delete(0, idx + 1);
                                 if (line.isEmpty()) continue;
                                 try {
                                     JsonNode node = om.readTree(line);
@@ -85,9 +82,8 @@ public class LlmStreamService {
                         },
                         () -> {
                             log.info("Ollama stream completed");
-                            onComplete.run();         // để Controller quyết định bắn 'products' / 'done'
+                            onComplete.run();
                             if (!completed.get()) {
-                                // Dù sao cũng đóng cho chắc (Controller thường đã complete)
                                 safeSend(emitter, SseEmitter.event().name("done").data("{}"));
                                 safeComplete(emitter);
                             }

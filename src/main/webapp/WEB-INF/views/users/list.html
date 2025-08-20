@@ -373,6 +373,7 @@
             <tr>
                 <th><i class="fas fa-hashtag me-1"></i> User ID</th>
                 <th><i class="fas fa-user me-1"></i> Username</th>
+                <th><i class="fas fa-key me-1"></i> Email</th>
                 <th><i class="fas fa-key me-1"></i> Password</th>
                 <th><i class="fas fa-shield-alt me-1"></i> Role</th>
                 <th><i class="fas fa-calendar me-1"></i> Created</th>
@@ -388,6 +389,12 @@
                     <div class="username">
                         <i class="fas fa-user-circle"></i>
                         <span th:text="${u.username}">john</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="email">
+                        <i class="fas fa-user-circle"></i>
+                        <span th:text="${u.email}">john</span>
                     </div>
                 </td>
                 <td>
