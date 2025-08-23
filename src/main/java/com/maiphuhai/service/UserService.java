@@ -82,9 +82,35 @@ public class UserService {
         return repo.findByUsernameOrEmail(v);
     }
 
-    public User findByEmail(String e) {
-        return repo.findByEmail(e);
+    // Search for user account
+    @Transactional(readOnly = true)
+    public List<User> search(String q, String by) {
+        // Nếu không nhập gì, trả danh sách như cũ
+        if (q == null || q.isBlank()) return repo.findAll();
+
+        by = (by == null || by.isBlank()) ? "both" : by.toLowerCase();
+
+        try {
+            switch (by) {
+                case "username" -> {
+                    var u = repo.findByUsername(q);
+                    return (u != null) ? List.of(u) : List.of();
+                }
+                case "email" -> {
+                    var u = repo.findByEmail(q);
+                    return (u != null) ? List.of(u) : List.of();
+                }
+                default -> { // both
+                    // Username/Email đều UNIQUE => tối đa 1 kết quả
+                    var u = repo.findByUsernameOrEmail(q);
+                    return (u != null) ? List.of(u) : List.of();
+                }
+            }
+        } catch (Exception ignore) {
+            return List.of(); // không tìm thấy -> trả list rỗng (tránh ném exception ra view)
+        }
     }
+
 
     public List<User> findAll() {
         return repo.findAll();

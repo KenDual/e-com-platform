@@ -17,12 +17,24 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /* ───────────────────── LIST ───────────────────── */
+    // UserController.java
     @GetMapping
-    public String listAll(Model model) {
-        model.addAttribute("users", userService.findAll());
+    public String listAll(@RequestParam(value = "q", required = false) String q,
+                          @RequestParam(value = "by", required = false, defaultValue = "both") String by,
+                          Model model) {
+
+        var users = userService.search(q, by);
+
+        model.addAttribute("users", users);
+        model.addAttribute("q", q);
+        model.addAttribute("by", by);
+
+        if (q != null && !q.isBlank() && users.isEmpty()) {
+            model.addAttribute("error", "Không tìm thấy người dùng phù hợp");
+        }
         return "users/list";
     }
+
 
     /* ───────────────────── ADD ────────────────────── */
     @GetMapping("/add")

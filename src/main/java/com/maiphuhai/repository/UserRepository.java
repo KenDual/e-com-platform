@@ -54,7 +54,22 @@ public class UserRepository {
                 """, M, u);
     }
 
-    /* ---------- CHECK EXISTS ---------- */
+    public User findByEmail(String e) {
+        return jdbc.queryForObject("""
+                SELECT * FROM Users
+                WHERE Email = ? AND IsDeleted = 0
+                """, M, e);
+    }
+
+    public User findByUsernameOrEmail(String v) {
+        List<User> list = jdbc.query("""
+                SELECT * FROM Users
+                WHERE (Username = ? OR Email = ?) AND IsDeleted = 0
+                """, M, v, v);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    /* ---------- CHECK EXISTS (đang ACTIVE) ---------- */
     public boolean existsByUsernameOrEmail(String u, String e) {
         Integer c = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM Users
@@ -63,13 +78,37 @@ public class UserRepository {
         return c != null && c > 0;
     }
 
-    /* ---------- CREATE ---------- */
     public int insert(User u) {
+        List<Integer> deletedIds = jdbc.query("""
+                SELECT TOP 1 UserId
+                FROM Users
+                WHERE IsDeleted = 1 AND (Username = ? OR Email = ?)
+                """,
+                (rs, n) -> rs.getInt(1),
+                u.getUsername(), u.getEmail()
+        );
+
+        if (!deletedIds.isEmpty()) {
+            int id = deletedIds.get(0);
+            jdbc.update("""
+                    UPDATE Users
+                    SET IsDeleted = 0,
+                        IsActive  = 1,
+                        DeletedAt = NULL,
+                        PasswordHash = ?,
+                        RoleId = ?
+                    WHERE UserId = ?
+                    """,
+                    u.getPasswordHash(), u.getRoleId(), id
+            );
+            return id;
+        }
+
         KeyHolder kh = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement("""
                     INSERT INTO Users
-                    (Username,Email,PasswordHash,RoleId)
+                    (Username, Email, PasswordHash, RoleId)
                     VALUES (?,?,?,?)
                     """, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, u.getUsername());
@@ -84,7 +123,7 @@ public class UserRepository {
     /* ---------- UPDATE PROFILE ---------- */
     public int update(User u) {
         return jdbc.update("""
-                UPDATE Users SET Username=?,Email=?,RoleId=?
+                UPDATE Users SET Username=?, Email=?, RoleId=?
                 WHERE UserId=? AND IsDeleted=0
                 """, u.getUsername(), u.getEmail(), u.getRoleId(), u.getUserId());
     }
@@ -100,14 +139,14 @@ public class UserRepository {
     /* ---------- SOFT DELETE / RESTORE ---------- */
     public int softDelete(int id) {
         return jdbc.update("""
-                UPDATE Users SET IsDeleted=1, DeletedAt=SYSUTCDATETIME()
+                UPDATE Users SET IsDeleted=1, IsActive=0, DeletedAt=SYSUTCDATETIME()
                 WHERE UserId=? AND IsDeleted=0
                 """, id);
     }
 
     public int restore(int id) {
         return jdbc.update("""
-                UPDATE Users SET IsDeleted=0, DeletedAt=NULL
+                UPDATE Users SET IsDeleted=0, IsActive=1, DeletedAt=NULL
                 WHERE UserId=? AND IsDeleted=1
                 """, id);
     }
@@ -147,21 +186,5 @@ public class UserRepository {
                 WHERE IsDeleted = 1
                   AND DeletedAt < DATEADD(day, -?, SYSUTCDATETIME())
                 """, days);
-    }
-
-    public User findByEmail(String e) {
-        return jdbc.queryForObject("""
-                SELECT * FROM Users
-                WHERE Email = ? AND IsDeleted = 0
-                """, M, e);
-    }
-
-    /* ---------- FIND BY USERNAME *HOẶC* EMAIL ---------- */
-    public User findByUsernameOrEmail(String v) {
-        List<User> list = jdbc.query("""
-                SELECT * FROM Users
-                WHERE (Username = ? OR Email = ?) AND IsDeleted = 0
-                """, M, v, v);
-        return list.isEmpty() ? null : list.get(0);
     }
 }

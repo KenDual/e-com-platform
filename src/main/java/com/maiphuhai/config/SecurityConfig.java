@@ -44,14 +44,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().permitAll()      // trang công khai
+                        .anyRequest().permitAll()
                 )
 
                 /* ---------- Form login ---------- */
                 .formLogin(login -> login
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .usernameParameter("email")   // nếu form dùng name="email"
+                        .usernameParameter("email")
                         .passwordParameter("password")
                         .defaultSuccessUrl("/products", true)
                         .failureUrl("/login?error")
