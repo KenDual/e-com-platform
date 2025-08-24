@@ -20,7 +20,7 @@ public class AiClientConfig {
     @Bean("ollamaWebClient")
     public WebClient ollamaWebClient(
             @Value("${ai.base-url}") String baseUrl,
-            @Value("${ai.timeout:120000}") long timeoutMs) {
+            @Value("${ai.timeout:60000}") long timeoutMs) {
 
         HttpClient httpClient = HttpClient.create()
                 .responseTimeout(Duration.ofMillis(timeoutMs))
@@ -39,7 +39,7 @@ public class AiClientConfig {
     @Bean("retrieverWebClient")
     public WebClient retrieverWebClient(
             @Value("${ai.retriever-url}") String baseUrl,
-            @Value("${ai.timeout:120000}") long timeoutMs) {
+            @Value("${ai.timeout:60000}") long timeoutMs) {
 
         HttpClient httpClient = HttpClient.create()
                 .responseTimeout(Duration.ofMillis(timeoutMs))

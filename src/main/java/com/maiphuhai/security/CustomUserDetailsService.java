@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepo;   // dùng JdbcTemplate repo có sẵn
+    private UserRepository userRepo;
 
     @Override
     public UserDetails loadUserByUsername(String login)

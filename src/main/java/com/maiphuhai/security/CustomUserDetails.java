@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override public String getPassword()            { return user.getPasswordHash(); }
-    @Override public String getUsername()            { return user.getEmail(); }   // hoặc Username tuỳ bạn
+    @Override public String getUsername()            { return user.getEmail(); }
     @Override public boolean isAccountNonExpired()   { return true; }
     @Override public boolean isAccountNonLocked()    { return user.isActive(); }
     @Override public boolean isCredentialsNonExpired(){ return true; }
